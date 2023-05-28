@@ -1,0 +1,73 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model AuthAccount {
+  id                String   @id @default(cuid()) @map("account_id")
+  userId            String   @map("user_id")
+  type              String   @db.VarChar(45)
+  provider          String   @db.VarChar(45)
+  providerAccountId String   @map("provider_account_id")
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  user              AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_account_user")
+
+  @@unique([provider, providerAccountId], map: "uniq_provider_providerAccountId")
+  @@index([userId], map: "idx_fk_account_user")
+  @@map("auth_account")
+}
+
+model AuthSession {
+  id            String   @id @default(cuid()) @map("session_id")
+  userId        String   @map("user_id")
+  session_token String   @unique(map: "uniq_sessionToken")
+  expires       DateTime @db.DateTime(0)
+  user          AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_session_user")
+
+  @@index([userId], map: "idx_fk_session_user")
+  @@map("auth_session")
+}
+
+model AuthUser {
+  id            String        @id @default(cuid()) @map("user_id")
+  name          String?       @db.VarChar(45)
+  email         String?       @unique(map: "uniq_email")
+  emailVerified DateTime?     @map("email_verified") @db.DateTime(0)
+  image         String?
+  accounts      AuthAccount[]
+  sessions      AuthSession[]
+
+  @@map("auth_user")
+}
+
+model AuthVerificationToken {
+  identifier Int
+  token      String   @unique(map: "uniq_token")
+  expires    DateTime @db.DateTime(0)
+
+  @@unique([identifier, token], map: "uniq_identifier_token")
+  @@map("auth_verification_token")
+}
+
+model User {
+  id            String   @id @default(cuid()) @map("user_id")
+  name          String   @db.VarChar(45)
+  email         String   @unique(map: "uniq_email")
+  // https://stackoverflow.com/a/5882472/16847756
+  // the output string's length of bcrypt is 60 bytes.
+  password      String   @db.VarChar(60)
+  emailVerified DateTime @map("email_verified") @db.DateTime(0)
+
+  @@map("user")
+}
