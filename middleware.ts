@@ -1,7 +1,10 @@
-import { type NextMiddleware, NextResponse } from "next/server";
+import { type NextMiddleware, type NextRequest, NextResponse, } from "next/server";
 import { parse } from "./lib/middleware/utils";
 import { getToken } from "next-auth/jwt";
 import { env } from "./env/server.mjs";
+import { match } from "@formatjs/intl-localematcher";
+import Negotiator from "negotiator";
+import { defaultLocale, locales } from "./lib/constants";
 
 export const config = {
     matcher: [
@@ -19,36 +22,73 @@ export const config = {
     ],
 };
 
+function getLocale(req: NextRequest) {
+    const _lang = req.cookies.get("_lang")?.name;
+
+    if (_lang && locales.includes(_lang)) {
+        return _lang;
+    }
+
+    const languages = new Negotiator({
+        headers: {
+            // keys must be lowercase
+            "accept-language": req.headers.get("accept-language") || undefined,
+        }
+    }).languages();
+
+    return match(languages, locales, defaultLocale);
+}
+
 const middleware: NextMiddleware = async (req, event) => {
     const { domain, path, key } = parse(req);
-    const session = await getToken({ req });
     const isHost = [env.HOST, env.VERCEL_URL].includes(domain);
+    const locale = getLocale(req);
 
-    if (!session?.email && !["/login", "/register", isHost ? "/" : undefined].includes(path)) {
-        return NextResponse.redirect(new URL("/login", req.url));
-    } else if (session?.email && (path === "/login" || path === "/register")) {
-        if (isHost) {
-            return NextResponse.rewrite(new URL("/treedeep", req.url));
-        }
+    const isMissingLocale = locales.every(
+        (locale) => !path.startsWith(`/${locale}/`) && path !== `/${locale}`
+    );
 
-        return NextResponse.redirect(new URL("/", req.url));
-    }
-
-    // for public stats pages
-    if (isHost && path.startsWith("/stats/")) {
-        return NextResponse.rewrite(new URL(`/treedeep${path}`, req.url));
-    }
-
-    if (path.startsWith("/meta-tags")) {
-        const url = req.nextUrl.searchParams.get("url");
-
-        if (!url) {
-            return NextResponse.rewrite(new URL("meta-tags", req.url));
-        }
-
-        return NextResponse.rewrite(
-            new URL(`/api/edge/meta-tags?url=${url}`, req.url)
+    if (isMissingLocale) {
+        // e.g. incoming request is /products
+        // The new URL is now /en-US/products
+        return NextResponse.redirect(
+            new URL(`/${locale}/${path}`, req.url)
         );
+    }
+
+    const session = await getToken({ req });
+    const indexPath = `/${locale}`;
+    const loginPath = `/${locale}/login`;
+    const registerPath = `/${locale}/register`;
+    const metaTagsPath = `/${locale}/meta-tags/`;
+    const statsPath = `/${locale}/stats/`;
+    const changelogPath = `/${locale}/changelog/`;
+
+    if (isHost) {
+        if (!session?.email &&
+            ![indexPath, loginPath, registerPath].includes(path) &&
+            [metaTagsPath, statsPath, changelogPath].some(p => !path.startsWith(p))
+        ) {
+            return NextResponse.redirect(new URL(loginPath, req.url));
+        } else if (session?.email && [loginPath, registerPath].includes(path)) {
+            return NextResponse.redirect(new URL(`/${locale}/projects`, req.url));
+        } else if (path.startsWith("/meta-tags")) {
+            const url = req.nextUrl.searchParams.get("url");
+
+            if (!url) {
+                return NextResponse.rewrite(new URL("meta-tags", req.url));
+            }
+
+            return NextResponse.rewrite(
+                new URL(`/api/edge/meta-tags?url=${url}`, req.url)
+            );
+        }
+    } else {
+        if (path === indexPath) {
+            return NextResponse.rewrite(new URL(`/${locale}/domain`, req.url));
+        } else if (!path.startsWith(statsPath)) {
+            return NextResponse.redirect(new URL(`/${locale}/domain`, req.url));
+        }
     }
 };
 

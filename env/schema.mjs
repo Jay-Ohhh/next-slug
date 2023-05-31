@@ -44,7 +44,9 @@ export const serverSchema = z.object({
     NODE_ENV: z.enum(["development", "test", "production"]),
     HOST: z.string(),
     ORIGIN: z.string().url(),
-    VERCEL: z.string().optional(),
+    // https://vercel.com/docs/concepts/projects/environment-variables/system-environment-variables
+    VERCEL: z.boolean().optional(),
+    // VERCEL_URL doesn't include `https`
     VERCEL_URL: z.string().optional(),
 });
 

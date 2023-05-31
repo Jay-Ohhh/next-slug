@@ -26,6 +26,7 @@ const serverEnv = {
     HOST: process.env.VERCEL_URL || process.env.HOST,
     ORIGIN: `https://${process.env.VERCEL_URL || process.env.HOST}`,
     NODE_ENV: process.env.NODE_ENV,
+    VERCEL: !!process.env.VERCEL,
     VERCEL_URL: process.env.VERCEL_URL,
 };
 

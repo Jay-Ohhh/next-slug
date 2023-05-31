@@ -1,0 +1,31 @@
+# https://hub.docker.com/_/redis
+version: '3'
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-data:/data
+    # save <seconds> <changes>: seconds 是间隔时间，在60秒内，只要有至少1个键值对被修改，Redis就会等待到60秒后执行一次快照持久化操作，不会在修改后立即执行
+    # 如果要在每次修改后立即执行持久化操作，可以同时设置 appendonly 为 true，appendfsync 为 always
+    # [Why Redis in Docker need set daemonize to no?](https://stackoverflow.com/questions/50790197/why-redis-in-docker-need-set-daemonize-to-no)
+    # 容器必须要有一个前台进程才能留存否则容器会自动退出
+    # [Usage of env variable in docker compose run command](https://stackoverflow.com/a/46456139/16847756)
+    # BUG: REDIS_PASSWORD 定义在 .env 文件里才有效，通过 env_file 设置其他 env 文件文件无效
+    # 或者通过 docker compose --env-file .env.local 才能在 command 中获取 $REDIS_PASSWORD
+    command:
+      [
+        "redis-server",
+        "/usr/local/etc/redis/redis.conf",
+        "--bind 0.0.0.0 -::",
+        "--daemonize no",
+        "--requirepass $REDIS_PASSWORD",
+        "--maxclients 100",
+        "--save 60 1"
+      ]
+volumes:
+  redis-data:
