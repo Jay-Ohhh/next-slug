@@ -18,6 +18,8 @@ const serverEnv = {
     TEAM_ID_VERCEL: process.env.TEAM_ID_VERCEL,
     AUTH_BEARER_TOKEN: process.env.AUTH_BEARER_TOKEN,
     DATABASE_URL: process.env.DATABASE_URL,
+    REDIS_URL: process.env.REDIS_URL,
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD,
     RSA_PRIVATE_KEY: process.env.RSA_PRIVATE_KEY,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
