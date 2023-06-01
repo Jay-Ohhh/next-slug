@@ -17,6 +17,7 @@ services:
     # [Usage of env variable in docker compose run command](https://stackoverflow.com/a/46456139/16847756)
     # BUG: REDIS_PASSWORD 定义在 .env 文件里才有效，通过 env_file 设置其他 env 文件文件无效
     # 或者通过 docker compose --env-file .env.local 才能在 command 中获取 $REDIS_PASSWORD
+    # --bind: Each address can be prefixed by "-", which means that redis will not fail to start if the address is not available.
     command:
       [
         "redis-server",

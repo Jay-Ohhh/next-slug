@@ -1,10 +1,9 @@
-import { type NextMiddleware, type NextRequest, NextResponse, } from "next/server";
+import { type NextMiddleware, NextResponse, } from "next/server";
 import { parse } from "./lib/middleware/utils";
 import { getToken } from "next-auth/jwt";
 import { env } from "./env/server.mjs";
-import { match } from "@formatjs/intl-localematcher";
-import Negotiator from "negotiator";
-import { defaultLocale, locales } from "./lib/constants";
+import { i18n } from "./i18n.config";
+import { getLocale } from "./lib/utils";
 
 export const config = {
     matcher: [
@@ -22,29 +21,12 @@ export const config = {
     ],
 };
 
-function getLocale(req: NextRequest) {
-    const _lang = req.cookies.get("_lang")?.name;
-
-    if (_lang && locales.includes(_lang)) {
-        return _lang;
-    }
-
-    const languages = new Negotiator({
-        headers: {
-            // keys must be lowercase
-            "accept-language": req.headers.get("accept-language") || undefined,
-        }
-    }).languages();
-
-    return match(languages, locales, defaultLocale);
-}
-
 const middleware: NextMiddleware = async (req, event) => {
     const { domain, path, key } = parse(req);
     const isHost = [env.HOST, env.VERCEL_URL].includes(domain);
     const locale = getLocale(req);
 
-    const isMissingLocale = locales.every(
+    const isMissingLocale = i18n.locales.every(
         (locale) => !path.startsWith(`/${locale}/`) && path !== `/${locale}`
     );
 
@@ -52,11 +34,10 @@ const middleware: NextMiddleware = async (req, event) => {
         // e.g. incoming request is /products
         // The new URL is now /en-US/products
         return NextResponse.redirect(
-            new URL(`/${locale}/${path}`, req.url)
+            new URL(`/${locale}${path}`, req.url)
         );
     }
 
-    const session = await getToken({ req });
     const indexPath = `/${locale}`;
     const loginPath = `/${locale}/login`;
     const registerPath = `/${locale}/register`;
@@ -65,6 +46,8 @@ const middleware: NextMiddleware = async (req, event) => {
     const changelogPath = `/${locale}/changelog/`;
 
     if (isHost) {
+        const session = await getToken({ req });
+
         if (!session?.email &&
             ![indexPath, loginPath, registerPath].includes(path) &&
             [metaTagsPath, statsPath, changelogPath].some(p => !path.startsWith(p))
@@ -72,11 +55,11 @@ const middleware: NextMiddleware = async (req, event) => {
             return NextResponse.redirect(new URL(loginPath, req.url));
         } else if (session?.email && [loginPath, registerPath].includes(path)) {
             return NextResponse.redirect(new URL(`/${locale}/projects`, req.url));
-        } else if (path.startsWith("/meta-tags")) {
+        } else if (path.startsWith(metaTagsPath.slice(0, -1))) {
             const url = req.nextUrl.searchParams.get("url");
 
             if (!url) {
-                return NextResponse.rewrite(new URL("meta-tags", req.url));
+                return NextResponse.rewrite(new URL(metaTagsPath.slice(0, -1), req.url));
             }
 
             return NextResponse.rewrite(

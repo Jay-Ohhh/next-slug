@@ -1,5 +1,4 @@
-/// <reference types="./lib/dictionaries.ts" />
-
+declare type Locale = import("./i18n.config").Locale;
 interface PageParams {
-    lang: Dictionaries;
+    lang: Locale;
 }

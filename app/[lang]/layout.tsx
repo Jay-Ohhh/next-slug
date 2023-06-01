@@ -2,15 +2,15 @@
 import "@/styles/globals.css";
 import { inter, satoshi } from "@/styles/font";
 import { Analytics } from "@vercel/analytics/react";
-import Providers from "../Providers";
+import Providers from "../../components/Providers";
 import { constructMeta } from "@/lib/utils";
 import clsx from "clsx";
-import { locales } from "@/lib/constants";
+import { i18n } from "@/i18n.config";
 
 export const metadata = constructMeta({});
 
 export async function generateStaticParams() {
-  return locales.map(lang => ({ lang }));
+  return i18n.locales.map(lang => ({ lang }));
 }
 
 export default function RootLayout({

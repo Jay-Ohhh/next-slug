@@ -9,6 +9,10 @@ const nextConfig = {
     reactStrictMode: false,
     // gzip by nginx
     compress: process.env.GZIP === "false" ? false : true,
+    i18n: {
+        defaultLocale: "en",
+        locales: ["zh", "en"]
+    },
     images: {
         domains: [
             "www.google.com",

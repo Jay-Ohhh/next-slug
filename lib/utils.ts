@@ -1,6 +1,11 @@
 import { FAVICON_FOLDER } from "@/lib/constants";
 import { env } from "@/env/server.mjs";
 import { type Metadata } from "next";
+import { match } from "@formatjs/intl-localematcher";
+import Negotiator from "negotiator";
+import { type NextRequest } from "next/server";
+import { i18n } from "@/i18n.config";
+
 
 // https://realfavicongenerator.net/ 
 // https://pjchender.dev/html/html-seo-meta/
@@ -116,4 +121,21 @@ export function constructMeta({
     };
 
     return metadata;
+}
+
+export function getLocale(req: Pick<NextRequest, "cookies" | "headers">) {
+    const _lang = req.cookies.get("_lang")?.name;
+
+    if (_lang && i18n.locales.includes(_lang as any)) {
+        return _lang;
+    }
+
+    const languages = new Negotiator({
+        headers: {
+            // keys must be lowercase
+            "accept-language": req.headers.get("accept-language") || undefined,
+        }
+    }).languages();
+
+    return match(languages, i18n.locales as unknown as string[], i18n.defaultLocale);
 }

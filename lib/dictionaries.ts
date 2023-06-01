@@ -5,5 +5,4 @@ const dictionaries = {
     en: () => import("../dictionaries/en.json").then(m => m.default),
 };
 
-export type Dictionaries = typeof dictionaries;
-export const getDictionary = async (locale: keyof Dictionaries) => dictionaries[locale]();
+export const getDictionary = async (locale: Locale) => dictionaries[locale]();
