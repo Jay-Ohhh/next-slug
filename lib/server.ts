@@ -4,8 +4,7 @@ import { type Metadata } from "next";
 import { match } from "@formatjs/intl-localematcher";
 import Negotiator from "negotiator";
 import { type NextRequest } from "next/server";
-import { i18n } from "@/i18n.config";
-
+import { i18n } from "@/i18n.config.mjs";
 
 // https://realfavicongenerator.net/ 
 // https://pjchender.dev/html/html-seo-meta/
@@ -85,6 +84,7 @@ export function constructMeta({
             creatorId: "1662405059479740416",
             images: ["/_static/thumbnail.png"],
         },
+        // 定义要在搜索结果中显示的网站图标: https://developers.google.com/search/docs/appearance/favicon-in-search?hl=zh-cn#guidelines
         icons: {
             icon: "/favicon.ico",
             other: [
@@ -94,6 +94,8 @@ export function constructMeta({
                     url: `${FAVICON_FOLDER}/apple-touch-icon.png`,
                     fetchPriority: "low",
                 },
+                //  一些旧版的浏览器或搜索引擎可能不支持 SVG 格式的图标。此外，一些搜索引擎可能会从网站中提取 ICO 或 PNG 格式的图标，而不是使用指定的 SVG 文件。
+                // 因此，建议在网站中同时提供 ICO、PNG 和 SVG 三种格式的图标
                 {
                     rel: "icon",
                     type: "image/png",
@@ -123,7 +125,10 @@ export function constructMeta({
     return metadata;
 }
 
-export function getLocale(req: Pick<NextRequest, "cookies" | "headers">) {
+export function getServerLocale(req: {
+    cookies: Pick<NextRequest["cookies"], "get">;
+    headers: Pick<NextRequest["headers"], "get">;
+}) {
     const _lang = req.cookies.get("_lang")?.name;
 
     if (_lang && i18n.locales.includes(_lang as any)) {

@@ -1,9 +1,9 @@
-import { type NextMiddleware, NextResponse, } from "next/server";
+import { type NextMiddleware, NextResponse } from "next/server";
 import { parse } from "./lib/middleware/utils";
 import { getToken } from "next-auth/jwt";
 import { env } from "./env/server.mjs";
-import { i18n } from "./i18n.config";
-import { getLocale } from "./lib/utils";
+import { i18n } from "./i18n.config.mjs";
+import { getServerLocale } from "./lib/server";
 
 export const config = {
     matcher: [
@@ -23,8 +23,9 @@ export const config = {
 
 const middleware: NextMiddleware = async (req, event) => {
     const { domain, path, key } = parse(req);
-    const isHost = [env.HOST, env.VERCEL_URL].includes(domain);
-    const locale = getLocale(req);
+    const isHost = [env.NEXT_PUBLIC_HOST, env.NEXT_PUBLIC_VERCEL_URL].includes(domain);
+    const firstPath = path.split("/")[1];
+    const locale = i18n.locales.includes(firstPath) ? firstPath : getServerLocale(req);
 
     const isMissingLocale = i18n.locales.every(
         (locale) => !path.startsWith(`/${locale}/`) && path !== `/${locale}`
@@ -68,6 +69,7 @@ const middleware: NextMiddleware = async (req, event) => {
         }
     } else {
         if (path === indexPath) {
+            // app/[domain]/page.tsx
             return NextResponse.rewrite(new URL(`/${locale}/domain`, req.url));
         } else if (!path.startsWith(statsPath)) {
             return NextResponse.redirect(new URL(`/${locale}/domain`, req.url));

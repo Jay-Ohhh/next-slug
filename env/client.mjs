@@ -2,6 +2,9 @@ import { clientSchema, formatErrors } from "./schema.mjs";
 
 export const clientEnv = {
     NEXT_PUBLIC_RSA_PUBLIC_KEY: process.env.NEXT_PUBLIC_RSA_PUBLIC_KEY,
+    NEXT_PUBLIC_VERCEL: !!process.env.NEXT_PUBLIC_VERCEL_URL,
+    NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
+    NEXT_PUBLIC_HOST: process.env.NEXT_PUBLIC_VERCEL_URL || process.env.NEXT_PUBLIC_HOST,
 };
 
 const _clientEnv = clientSchema.safeParse(clientEnv);

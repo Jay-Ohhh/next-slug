@@ -1,5 +1,10 @@
 {
     "index": {
         "title": "Hello World"
+    },
+    "nav": {
+        "Changelog": "Changelog",
+        "Login in": "Log in",
+        "Sign up": "Sign Up"
     }
 }

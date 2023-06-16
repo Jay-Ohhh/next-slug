@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 import { inter, satoshi } from "@/styles/font";
 import { Analytics } from "@vercel/analytics/react";
 import Providers from "../../components/Providers";
-import { constructMeta } from "@/lib/utils";
+import { constructMeta } from "@/lib/server";
 import clsx from "clsx";
 import { i18n } from "@/i18n.config";
 

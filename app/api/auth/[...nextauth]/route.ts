@@ -75,7 +75,7 @@ if (env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) {
     );
 }
 
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
     pages: {
         signIn: "/login",
     },

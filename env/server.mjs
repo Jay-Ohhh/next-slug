@@ -25,11 +25,8 @@ const serverEnv = {
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
-    HOST: process.env.VERCEL_URL || process.env.HOST,
-    ORIGIN: `https://${process.env.VERCEL_URL || process.env.HOST}`,
+    ORIGIN: `https://${process.env.NEXT_PUBLIC_VERCEL_URL || process.env.NEXT_PUBLIC_HOST}`,
     NODE_ENV: process.env.NODE_ENV,
-    VERCEL: !!process.env.VERCEL,
-    VERCEL_URL: process.env.VERCEL_URL,
 };
 
 const _serverEnv = serverSchema.safeParse(serverEnv);
